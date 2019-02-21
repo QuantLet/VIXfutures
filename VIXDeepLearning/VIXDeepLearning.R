@@ -15,8 +15,9 @@ lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 df <- readRDS(file.path(getwd(), "VIXDeepLearning", "data", "raw", "VIX_Sp500.Rdata"))
 
 # calculate log-returns
-log_df <- df %>% arrange(DATETIME) %>% group_by(DATE) %>% mutate_at(vars(-DATETIME, -DATE), .funs = function(x) log(x/lag(x))) %>% ungroup() %>% select(DATETIME, 
-    DATE, everything()) %>% mutate(VIX_PRED = lead(VIX)) %>% drop_na()
+log_df <- df %>% arrange(DATETIME) %>% group_by(DATE) %>% 
+    mutate_at(vars(-DATETIME, -DATE), .funs = function(x) log(x/lag(x))) %>% ungroup() %>% 
+    select(DATETIME, DATE, everything()) %>% mutate(VIX_PRED = lead(VIX)) %>% drop_na()
 
 # split the data into train and test datasets
 train_interval <- interval("2018-01-01", "2018-01-31", tz = "CET")
@@ -60,14 +61,18 @@ test_df %>% add_column(MODEL_PRED = as.vector(y_test_predict))
 model_vix_ret_pred <- test_df %>% select(DATETIME, MODEL_PRED)
 
 # compare the model prediction at the index price level
-vix_pred <- df %>% filter(DATE %within% test_interval) %>% select(DATETIME, VIX) %>% left_join(model_vix_ret_pred) %>% mutate(VIX_PRED = lag(VIX * exp(MODEL_PRED)))
+vix_pred <- df %>% 
+  filter(DATE %within% test_interval) %>% select(DATETIME, VIX) %>% left_join(model_vix_ret_pred) %>% 
+  mutate(VIX_PRED = lag(VIX * exp(MODEL_PRED)))
 
 # plot the results using ggplot
 vix_plot_data <- vix_pred %>% select(-MODEL_PRED) %>% gather(Type, Price, -DATETIME)
 vix_plot_data <- vix_plot_data %>% group_by(Type) %>% mutate(id = row_number())
 
-ggplot(vix_plot_data, aes(x = id, y = Price)) + geom_line(aes(color = Type), size = 0.5) + scale_color_manual(values = c("#00AFBB", "#E7B800")) + theme_minimal() + 
-    scale_x_continuous(name = "Observation") + ggtitle("LSTM based VIX prediction") + theme(plot.title = element_text(hjust = 0.5))
+ggplot(vix_plot_data, aes(x = id, y = Price)) + geom_line(aes(color = Type), size = 0.5) + 
+    scale_color_manual(values = c("#00AFBB", "#E7B800")) + theme_minimal() + 
+    scale_x_continuous(name = "Observation") + ggtitle("LSTM based VIX prediction") + 
+    theme(plot.title = element_text(hjust = 0.5))
 
 ggsave(file.path(getwd(), "VIXDeepLearning", "LSTM_VIX_Prediction.png"), dpi = 120, width = 6, height = 4, units = "in")
                                                                     
