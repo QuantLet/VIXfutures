@@ -7,4 +7,4 @@ lapply(libraries, function(x) if (!(x %in% installed.packages())) {
 lapply(libraries, library, quietly = TRUE, character.only = TRUE)
 # setwd('C:\')
 #tidy_dir("C:\\Joerg\\drive\\github\\josterri\\VIX\\VIXfutures")
-tidy_dir(VIXfutures)
+tidy_dir("VIXfutures.R")
